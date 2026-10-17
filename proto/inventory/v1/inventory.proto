@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/arpanbom/go-grpc-inventory-service/gen/inventory/v1;inventoryv1";
+
+// InventoryService tracks products and holds stock with idempotent reservations.
+service InventoryService {
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse) {
+    option (google.api.http) = {
+      post: "/v1/products"
+      body: "*"
+    };
+  }
+
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse) {
+    option (google.api.http) = {
+      get: "/v1/products/{id}"
+    };
+  }
+
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {
+    option (google.api.http) = {
+      get: "/v1/products"
+    };
+  }
+
+  rpc AdjustStock(AdjustStockRequest) returns (AdjustStockResponse) {
+    option (google.api.http) = {
+      post: "/v1/products/{product_id}:adjustStock"
+      body: "*"
+    };
+  }
+
+  rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse) {
+    option (google.api.http) = {
+      post: "/v1/reservations"
+      body: "*"
+    };
+  }
+
+  rpc GetReservation(GetReservationRequest) returns (GetReservationResponse) {
+    option (google.api.http) = {
+      get: "/v1/reservations/{id}"
+    };
+  }
+
+  rpc CommitReservation(CommitReservationRequest) returns (CommitReservationResponse) {
+    option (google.api.http) = {
+      post: "/v1/reservations/{id}:commit"
+      body: "*"
+    };
+  }
+
+  rpc ReleaseReservation(ReleaseReservationRequest) returns (ReleaseReservationResponse) {
+    option (google.api.http) = {
+      post: "/v1/reservations/{id}:release"
+      body: "*"
+    };
+  }
+}
+
+enum ReservationStatus {
+  RESERVATION_STATUS_UNSPECIFIED = 0;
+  RESERVATION_STATUS_HELD = 1;
+  RESERVATION_STATUS_COMMITTED = 2;
+  RESERVATION_STATUS_RELEASED = 3;
+}
+
+message Product {
+  string id = 1;
+  string sku = 2;
+  string name = 3;
+  string description = 4;
+  int64 price_cents = 5;
+  int32 on_hand = 6;
+  int32 reserved = 7;
+  int32 available = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message Reservation {
+  string id = 1;
+  string idempotency_key = 2;
+  string product_id = 3;
+  int32 quantity = 4;
+  ReservationStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message CreateProductRequest {
+  string sku = 1;
+  string name = 2;
+  string description = 3;
+  int64 price_cents = 4;
+  int32 on_hand = 5;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+}
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message GetProductResponse {
+  Product product = 1;
+}
+
+message ListProductsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  string next_page_token = 2;
+}
+
+message AdjustStockRequest {
+  string product_id = 1;
+  int32 delta = 2;
+}
+
+message AdjustStockResponse {
+  Product product = 1;
+}
+
+message ReserveStockRequest {
+  string idempotency_key = 1;
+  string product_id = 2;
+  int32 quantity = 3;
+}
+
+message ReserveStockResponse {
+  Reservation reservation = 1;
+}
+
+message GetReservationRequest {
+  string id = 1;
+}
+
+message GetReservationResponse {
+  Reservation reservation = 1;
+}
+
+message CommitReservationRequest {
+  string id = 1;
+}
+
+message CommitReservationResponse {
+  Reservation reservation = 1;
+}
+
+message ReleaseReservationRequest {
+  string id = 1;
+}
+
+message ReleaseReservationResponse {
+  Reservation reservation = 1;
+}

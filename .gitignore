@@ -1,0 +1,34 @@
+# Binaries
+/bin/
+/dist/
+/inventoryd
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test output
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Editor and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Go workspace
+vendor/
+
+# Buf cache
+.buf/
+
+# Local data
+tmp/
